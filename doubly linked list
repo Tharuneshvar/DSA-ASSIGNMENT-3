@@ -1,0 +1,158 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+typedef struct Node {
+    char name[100];
+    struct Node* next;
+    struct Node* prev;
+} Node;
+
+Node* head = NULL;
+
+void createList(int n) {
+    for (int i = 0; i < n; i++) {
+        Node* newNode = (Node*)malloc(sizeof(Node));
+        printf("Enter contact name %d: ", i + 1);
+        scanf("%s", newNode->name);
+        newNode->next = head;
+        newNode->prev = NULL;
+        if (head) head->prev = newNode;
+        head = newNode;
+    }
+}
+
+void insertContact(char* name, int pos) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    strcpy(newNode->name, name);
+    if (pos == 0) {
+        newNode->next = head;
+        newNode->prev = NULL;
+        if (head) head->prev = newNode;
+        head = newNode;
+    } else {
+        Node* current = head;
+        for (int i = 0; i < pos - 1 && current; i++) current = current->next;
+        if (current) {
+            newNode->next = current->next;
+            newNode->prev = current;
+            if (current->next) current->next->prev = newNode;
+            current->next = newNode;
+        } else {
+            free(newNode);
+        }
+    }
+}
+
+void deleteContact(char* identifier) {
+    if (!head) return;
+    if (isdigit(identifier[0])) {
+        int pos = atoi(identifier);
+        Node* current = head;
+        for (int i = 0; i < pos && current; i++) current = current->next;
+        if (current) {
+            if (current->prev) current->prev->next = current->next;
+            else head = current->next;
+            if (current->next) current->next->prev = current->prev;
+            free(current);
+        }
+    } else {
+        Node* current = head;
+        while (current && strcmp(current->name, identifier)) current = current->next;
+        if (current) {
+            if (current->prev) current->prev->next = current->next;
+            else head = current->next;
+            if (current->next) current->next->prev = current->prev;
+            free(current);
+        }
+    }
+}
+
+void displayContacts() {
+    Node* current = head;
+    printf("Contact list (forward): ");
+    while (current) {
+        printf("%s <-> ", current->name);
+        current = current->next;
+    }
+    printf("NULL\n");
+}
+
+void displayContactsBackward() {
+    Node* current = head;
+    while (current && current->next) current = current->next;
+    printf("Contact list (backward): ");
+    while (current) {
+        printf("%s <-> ", current->name);
+        current = current->prev;
+    }
+    printf("NULL\n");
+}
+
+void searchContact(char* name) {
+    Node* current = head;
+    int index = 0;
+    while (current) {
+        if (!strcmp(current->name, name)) {
+            printf("%s found at position %d\n", name, index);
+            return;
+        }
+        current = current->next;
+        index++;
+    }
+    printf("%s not found.\n", name);
+}
+
+int main() {
+    int choice;
+    char name[100], identifier[100];
+
+    while (1) {
+        printf("\n1. Create list\n2. Insert contact\n3. Delete contact\n4. Display list\n5. Search contact\n6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter number of contacts: ");
+                int n;
+                scanf("%d", &n);
+                createList(n);
+                break;
+            case 2:
+                printf("Enter the contact's name to insert: ");
+                scanf("%s", name);
+                printf("Enter the position (0-based index) to insert the contact: ");
+                int pos;
+                scanf("%d", &pos);
+                insertContact(name, pos);
+                break;
+            case 3:
+                printf("Delete by name or position? (n/p): ");
+                char mode;
+                scanf(" %c", &mode);
+                if (mode == 'n') {
+                    printf("Enter the contact's name to delete: ");
+                    scanf("%s", name);
+                    deleteContact(name);
+                } else {
+                    printf("Enter the position (0-based index) to delete: ");
+                    scanf("%s", identifier);
+                    deleteContact(identifier);
+                }
+                break;
+            case 4:
+                displayContacts();
+                displayContactsBackward();
+                break;
+            case 5:
+                printf("Enter the contact's name to search: ");
+                scanf("%s", name);
+                searchContact(name);
+                break;
+            case 6:
+                printf("Exiting the program...\n");
+                exit(0);
+        }
+    }
+    return 0;
